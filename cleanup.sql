@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS alert;
+DROP TABLE IF EXISTS observation;
+DROP TABLE IF EXISTS alert_type;
+DROP TABLE IF EXISTS weather_condition;
+DROP TABLE IF EXISTS weather_station;
+DROP TABLE IF EXISTS county;
+DROP TABLE IF EXISTS state;
