@@ -1,2 +1,4 @@
 # ignore api keys
 .env*
+# duh
+node_modules
