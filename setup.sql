@@ -67,3 +67,4 @@ CREATE TABLE IF NOT EXISTS alert (
     FOREIGN KEY (alert_type_id) REFERENCES alert_type(alert_type_id)
         ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
