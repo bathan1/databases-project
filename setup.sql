@@ -1,7 +1,9 @@
 CREATE TABLE IF NOT EXISTS state (
     state_id INT AUTO_INCREMENT PRIMARY KEY,
     state_name VARCHAR(100) NOT NULL,
-    state_code CHAR(2) NOT NULL UNIQUE
+    state_code CHAR(2) NOT NULL UNIQUE,
+    lat DECIMAL NOT NULL,
+    lon DECIMAL NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS county (

@@ -31,6 +31,9 @@ async function getCoordinates({
   return response.json();
 }
 
+async function getHourlyForecast() {
+}
+
 const cities = JSON.parse(fs.readFileSync("./capitals.json", "utf8"));
 
 for (const city of cities) {
