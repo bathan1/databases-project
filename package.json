@@ -3,15 +3,31 @@
   "type": "module",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "docker-up": "docker compose up -d",
+    "docker-down": "docker compose down",
+    "migrate-up": "tsx --env-file=.env ./db/up.ts",
+    "migrate-down": "tsx --env-file=.env ./db/down.ts",
+    "db-codegen": "kysely-codegen --env-file=.env",
+    "load-data": "tsx ./scripts/insert-locations.ts && tsx ./scripts/insert-observations.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.28.0",
   "dependencies": {
-    "dotenv": "^17.4.0"
+    "@t3-oss/env-core": "^0.13.11",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.4.0",
+    "kysely": "^0.28.15",
+    "mysql2": "^3.20.0",
+    "openmeteo": "^1.2.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "kysely-codegen": "^0.20.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
   }
 }

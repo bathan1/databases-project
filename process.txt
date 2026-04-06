@@ -1,0 +1,64 @@
+The `load.sql` data was generated from this project's Node.js scripts.
+
+It uses the following APIs:
+
+1. The openweathermap geo api: http://api.openweathermap.org/geo/1.0/direct
+    - This is so we can get the latitude and longitude pairs from city state names.
+2. The openweathermap current forecast api: https://api.openweathermap.org/data/2.5/weather
+    - This is mainly to used get metadata, namely the UTC timezone offset
+3. The open-meteo hourly forecasts API to get our observations: https://api.open-meteo.com/v1/forecast
+    - This is so we can get our observation data and their derived alerts and weather_conditions
+
+To run the node.js scripts:
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Load in environment variables into `.env`:
+```txt
+OPEN_WEATHER_MAP_API_KEY=
+# If you're using the docker compose 
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=password
+DB_NAME=mydb
+DATABASE_URL=mysql://root:password@localhost:3306/mydb
+```
+
+3. (Optionally) spin up mysql using `docker compose`:
+```bash
+npm run docker-up
+```
+
+4. Run the setup migration script:
+```bash
+npm run migrate-up
+```
+
+5. Run the data-loader scripts from `./scripts`:
+```bash
+npm run load-data
+```
+
+You can then make the load.sql file using the mysql INSERT dump:
+```bash
+mysqldump -h 127.0.0.1 -P 3306 -u root -p \
+  --no-create-info \
+  --complete-insert \
+  --skip-triggers \
+  --compact \
+  --set-gtid-purged=OFF \
+  mydb \
+  states \
+  cities \
+  observations \
+  alerts \
+  > load.sql
+```
+
+We don't need to dump `weather_conditions` and `alert_types` because that's in the `setup.sql` script.
+
+And that's it.
