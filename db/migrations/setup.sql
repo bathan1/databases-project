@@ -57,7 +57,6 @@ CREATE TABLE IF NOT EXISTS alerts (
 );
 
 -- static values
-
 INSERT IGNORE INTO weather_conditions (condition_id, condition_name, category) VALUES
     (1, 'Clear', 'Clouds'),
     (2, 'Partly Cloudy', 'Clouds'),
