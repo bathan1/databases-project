@@ -5,6 +5,8 @@
   "description": "",
   "scripts": {
     "dev": "next",
+    "build": "next build",
+    "preview": "next start",
     "docker-up": "docker compose up -d",
     "docker-down": "docker compose down",
     "migrate-up": "tsx --env-file=.env ./db/up.ts",
