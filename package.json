@@ -6,12 +6,12 @@
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "preview": "next start",
+    "start": "serve out",
     "docker-up": "docker compose up -d",
     "docker-down": "docker compose down",
-    "migrate-up": "tsx --env-file=.env ./db/up.ts",
-    "migrate-down": "tsx --env-file=.env ./db/down.ts",
-    "db-codegen": "kysely-codegen --env-file=.env",
+    "migrate-up": "tsx --env-file=.env.local ./db/up.ts",
+    "migrate-down": "tsx --env-file=.env.local ./db/down.ts",
+    "db-codegen": "kysely-codegen --env-file=.env.local",
     "load-data": "tsx ./scripts/insert-locations.ts && tsx ./scripts/insert-observations.ts"
   },
   "keywords": [],
@@ -61,6 +61,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-simple-maps": "^3.0.6",
     "kysely-codegen": "^0.20.0",
+    "serve": "^14.2.6",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }

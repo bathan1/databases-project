@@ -17,7 +17,7 @@ To run the node.js scripts:
 npm install
 ```
 
-2. Load in environment variables into `.env`:
+2. Load in environment variables into `.env.local`:
 ```txt
 OPEN_WEATHER_MAP_API_KEY=
 # If you're using the docker compose 

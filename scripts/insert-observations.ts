@@ -4,6 +4,39 @@ import { db } from "../db/client.js";
 import { sql, type Insertable } from "kysely";
 import type { Observations } from "kysely-codegen";
 
+function readIntArg(name: string, defaultValue: number) {
+  const prefix = `--${name}=`
+  const inlineArg = process.argv.find((arg) => arg.startsWith(prefix))
+
+  if (inlineArg) {
+    const value = Number(inlineArg.slice(prefix.length))
+
+    if (!Number.isInteger(value) || value < 0) {
+      throw new Error(`Invalid --${name}. Expected a non-negative integer.`)
+    }
+
+    return value
+  }
+
+  const index = process.argv.indexOf(`--${name}`)
+
+  if (index !== -1) {
+    const rawValue = process.argv[index + 1]
+    const value = Number(rawValue)
+
+    if (!Number.isInteger(value) || value < 0) {
+      throw new Error(`Invalid --${name}. Expected a non-negative integer.`)
+    }
+
+    return value
+  }
+
+  return defaultValue
+}
+
+const PAST_DAYS = readIntArg("past-days", 3)
+const FORECAST_DAYS = readIntArg("forecast-days", 4)
+
 type AlertState = {
   active: boolean;
 };
@@ -22,14 +55,12 @@ function getTriggeredAlert(row: Insertable<Observations>): string | null {
   return null;
 }
 
-const INTERVAL_DAYS = 3;
-
 const cities = await db.selectFrom("cities").selectAll().execute();
 
 console.log(
 `Pulling weather data for ${cities.length} cities.
-Start: ${INTERVAL_DAYS} ago
-End: ${INTERVAL_DAYS} ago`
+Start: ${PAST_DAYS} ago
+End: ${FORECAST_DAYS} ago`
 );
 
 function fromEntries<K extends PropertyKey, V>(
@@ -56,8 +87,8 @@ for (const city of cities) {
     latitude: city.lat,
     longitude: city.lon,
     hourly: HOURLY_VARIABLES,
-    forecast_days: INTERVAL_DAYS,
-    past_days: INTERVAL_DAYS
+    forecast_days: FORECAST_DAYS,
+    past_days: PAST_DAYS
   });
   const response = responses[0];
   if (!response) {
