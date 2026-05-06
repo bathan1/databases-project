@@ -1,0 +1,67 @@
+There will be a map with 7 states, 1 for each day observed.
+
+Then for each map (so per day), it will highlight
+
+1. State with highest average temperatures
+2. State with lowest average tempreatures
+
+Which takes care of Query 1:
+
+-- (1) Which states had the highest and lowest average temperatures on the most recent stored day?
+
+Then for each state capital, it will color it in a certain heat color
+based on its ranking in the heat query:
+
+-- (2) At the most recent stored observation time, which state capitals were in the top 10 for temperature?
+
+Same for the cold coloring:
+
+-- (3) At the most recent stored observation time, which state capitals were in the bottom 10 for temperature?
+
+There will also be a *label* for wind speeds. For each day,
+the map will write over each capital city the max windspeed
+recorded for that day:
+
+-- (4) For each state, what was the maximum wind speed recorded at its capital city over the stored time window, and when did it occur?
+
+Same with the precipitation:
+
+-- (5) Which state capitals had the highest total precipitation over the stored historical window?
+
+Then for each day map, it will also label and highlight the state
+capitals that had the greatest number of zero-precipitation
+observations recorded for that day:
+
+-- (6) Which state capitals had zero precipitation for the greatest number of stored observation hours?
+
+We also will label the average humidity per state for that day:
+ 
+-- (7) What was the average humidity by state for each stored local day in the time window?
+
+Then we will label the state capitals that had the highest number
+of severe weather alerts recorded on that day:
+
+-- (8) Which state capitals had the greatest number of severe weather alerts during the stored alert window?
+
+Then based on whichever alert type was most common for each state,
+we will highlight it as that as well.
+
+Then for each day, we will also add a special label / highlight for
+the city with the warmest average daytime temperatures and the coldest
+nighttime temperature:
+
+-- (10) Over the stored historical period, which capital city had the warmest average daytime temperature and which had the coldest average nighttime temperature?
+
+Also label the top 10 cities with the highest average maximum wind speeds
+
+-- (11) Over the stored historical period, which capital cities recorded the highest average maximum wind speeds?
+
+And label the number of severe weather alerts per capital city
+-- (12) At the most recent stored timestamp, how many severe alerts were active across all monitored capital cities?
+
+Then for just Annapolis, we will also give it a highlighting based on
+if it a) rained that day and b) how that precipitation compared with the 
+5 nearest monitored capital cities:
+
+-- (13) At the most recent stored timestamp, was Annapolis experiencing rainfall, and how did its precipitation compare with the 5 nearest monitored capital cities?
+

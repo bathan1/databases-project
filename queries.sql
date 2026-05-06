@@ -18,15 +18,13 @@ state_daily_avg AS (
         ON DATE(o.timestamp) = ld.latest_date
     GROUP BY s.state_id, s.state_name
 )
-(
-    SELECT
-        'highest' AS extreme_type,
-        state_name,
-        ROUND(avg_temp_c, 2) AS avg_temp_c
-    FROM state_daily_avg
-    ORDER BY avg_temp_c DESC
-    LIMIT 1
-)
+SELECT
+    'highest' AS extreme_type,
+    state_name,
+    ROUND(avg_temp_c, 2) AS avg_temp_c
+FROM state_daily_avg
+ORDER BY avg_temp_c DESC
+LIMIT 1
 UNION ALL
 (
     SELECT
@@ -39,7 +37,6 @@ UNION ALL
 );
 
 -- (2) At the most recent stored observation time, which state capitals were in the top 10 for temperature?
-
 SELECT
     s.state_name,
     c.city_name,
@@ -251,7 +248,7 @@ UNION ALL
     LIMIT 1
 );
 
--- (11) Over the stored historical period, which capital cities recorded the highest average and maximum wind speeds?
+-- (11) Over the stored historical period, which capital cities recorded the highest average maximum wind speeds?
 
 SELECT
     s.state_name,

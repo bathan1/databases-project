@@ -177,4 +177,3 @@ Several transformations are applied before insertion into the database:
 5. **Deduplication**
    - Enforced via `UNIQUE(city_id, timestamp)`
    - Duplicate inserts are ignored or skipped during loading
-

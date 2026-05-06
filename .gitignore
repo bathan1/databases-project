@@ -2,3 +2,4 @@
 .env*
 # duh
 node_modules
+.next

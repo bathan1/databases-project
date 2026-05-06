@@ -1,6 +1,6 @@
 import { createPool } from 'mysql2'
 import { FileMigrationProvider, Kysely, Migrator, MysqlDialect } from 'kysely'
-import { env } from "../env.js";
+import { env } from "../env";
 import type { DB } from "kysely-codegen";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -20,11 +20,14 @@ export const db = new Kysely<DB>({
   dialect
 });
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export const migrator = new Migrator({
   db,
   provider: new FileMigrationProvider({
     fs,
     path,
-    migrationFolder: fileURLToPath(new URL("./migrations", import.meta.url))
+    migrationFolder: path.join(__dirname, "./migrations")
   })
 })
