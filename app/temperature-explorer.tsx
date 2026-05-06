@@ -1,18 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { WeatherMap } from "@/app/weather-map"
-
-type CapitalMarker = {
-  id: string | number
-  cityName: string
-  stateName: string
-  lat: number
-  lon: number
-  value: number
-  heatRank?: number
-  coldRank?: number
-}
+import { WeatherMap, type CapitalMarker } from "@/app/weather-map"
 
 type TemperatureDay = {
   date: string
@@ -127,7 +116,6 @@ export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
             return (
               <button
                 key={key}
-                type="button"
                 disabled={!isAvailable}
                 onClick={() => {
                   if (isAvailable) {

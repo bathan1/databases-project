@@ -2,12 +2,14 @@ import { TemperatureExplorer } from "@/app/temperature-explorer"
 import { db } from "@/db/client"
 import {
   daily_city_average_temperature,
+  daily_daytime_nighttime_temperature_extremes,
   top_ten_coldest,
   top_ten_hottest,
   type DailyCityAverageTemperature,
+  type DailyDaytimeNighttimeTemperatureExtreme,
   type TopTenColdestCapital,
   type TopTenHottestCapital,
-} from "@/app/queries";
+} from "@/app/queries"
 import { sql } from "kysely"
 
 type CapitalCityRow = {
@@ -39,6 +41,10 @@ export default async function Page() {
     .executeQuery(top_ten_coldest.compile(db))
     .then((r) => r.rows as TopTenColdestCapital[])
 
+  const daytimeNighttimeRows = await db
+    .executeQuery(daily_daytime_nighttime_temperature_extremes.compile(db))
+    .then((r) => r.rows as DailyDaytimeNighttimeTemperatureExtreme[])
+
   const capitalCities = (await db
     .selectFrom("cities")
     .innerJoin("states", "states.state_id", "cities.state_id")
@@ -55,6 +61,8 @@ export default async function Page() {
 
   const heatRankByDateAndCityId = new Map<string, number>()
   const coldRankByDateAndCityId = new Map<string, number>()
+  const warmestDaytimeByDateAndCityId = new Map<string, number>()
+  const coldestNighttimeByDateAndCityId = new Map<string, number>()
 
   for (const row of hottestRows) {
     const dateKey = toDateKey(row.local_date)
@@ -74,6 +82,19 @@ export default async function Page() {
     )
   }
 
+  for (const row of daytimeNighttimeRows) {
+    const dateKey = toDateKey(row.local_date)
+    const key = `${dateKey}:${row.city_id}`
+
+    if (row.extreme_type === "warmest_daytime") {
+      warmestDaytimeByDateAndCityId.set(key, Number(row.temperature_c))
+    }
+
+    if (row.extreme_type === "coldest_nighttime") {
+      coldestNighttimeByDateAndCityId.set(key, Number(row.temperature_c))
+    }
+  }
+
   const daysMap = new Map<
     string,
     Array<{
@@ -83,9 +104,11 @@ export default async function Page() {
       lat: number
       lon: number
       value: number
-      heatRank?: number
-      coldRank?: number
-    }>
+      heatRank?: number | undefined
+      coldRank?: number | undefined
+      warmestDaytimeTempC?: number | undefined
+      coldestNighttimeTempC?: number | undefined
+    }> 
   >()
 
   for (const row of dailyAverageRows) {
@@ -104,8 +127,10 @@ export default async function Page() {
       lat: city.lat,
       lon: city.lon,
       value: Number(row.avg_temp_c),
-      heatRank: heatRankByDateAndCityId.get(rankKey)!,
-      coldRank: coldRankByDateAndCityId.get(rankKey)!,
+      heatRank: heatRankByDateAndCityId.get(rankKey),
+      coldRank: coldRankByDateAndCityId.get(rankKey),
+      warmestDaytimeTempC: warmestDaytimeByDateAndCityId.get(rankKey),
+      coldestNighttimeTempC: coldestNighttimeByDateAndCityId.get(rankKey),
     })
 
     daysMap.set(dateKey, current)

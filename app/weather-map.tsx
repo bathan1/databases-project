@@ -10,8 +10,6 @@ import Map, {
   type LayerProps,
 } from "react-map-gl/maplibre"
 
-import { Button } from "@/components/ui/button";
-
 import {
   HoverCard,
   HoverCardContent,
@@ -27,6 +25,8 @@ type CapitalMarker = {
   value: number
   heatRank?: number
   coldRank?: number
+  warmestDaytimeTempC?: number
+  coldestNighttimeTempC?: number
 }
 
 function tempColor(tempC: number) {
@@ -63,24 +63,28 @@ function makeStateFillExpression(capitals: CapitalMarker[]) {
 
 function CapitalMarkerHoverCard({ capital }: { capital: CapitalMarker }) {
   const isRanked = capital.heatRank != null || capital.coldRank != null
+  const hasDaytimeNighttimeExtreme =
+    capital.warmestDaytimeTempC != null || capital.coldestNighttimeTempC != null
+
+  const shouldShowLabel = isRanked || hasDaytimeNighttimeExtreme
 
   return (
     <HoverCard>
-      <HoverCardTrigger render={(
-        <Button
+      <HoverCardTrigger
+        render={(
+        <button
+          type="button"
           aria-label={`${capital.cityName}, ${capital.stateName}`}
           className={[
             "relative border shadow transition-transform hover:scale-110",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-
-            isRanked
+            shouldShowLabel
               ? "rounded-full px-2 py-1 text-xs font-medium"
               : "size-2.5 rounded-full p-0",
-
             tempMarkerClass(capital.value),
           ].join(" ")}
         >
-          {isRanked ? capital.cityName : null}
+          {shouldShowLabel ? capital.cityName : null}
 
           {capital.heatRank != null && (
             <span className="absolute -right-3 -top-3 rounded-full border bg-background px-1.5 py-0.5 text-[10px] font-semibold text-foreground shadow">
@@ -93,8 +97,22 @@ function CapitalMarkerHoverCard({ capital }: { capital: CapitalMarker }) {
               🧊 {capital.coldRank}
             </span>
           )}
-        </Button>
-      )} />
+
+          {capital.warmestDaytimeTempC != null && (
+            <span className="absolute -left-3 -top-3 rounded-full border bg-background px-1.5 py-0.5 text-[10px] font-semibold text-foreground shadow">
+              ☀️
+            </span>
+          )}
+
+          {capital.coldestNighttimeTempC != null && (
+            <span className="absolute -left-3 -bottom-3 rounded-full border bg-background px-1.5 py-0.5 text-[10px] font-semibold text-foreground shadow">
+              🌙
+            </span>
+          )}
+        </button>
+        )}
+      />
+
       <HoverCardContent
         side="top"
         align="center"
@@ -122,9 +140,7 @@ function CapitalMarkerHoverCard({ capital }: { capital: CapitalMarker }) {
 
           {capital.heatRank != null && (
             <div className="rounded-md border bg-muted/40 p-3">
-              <div className="text-muted-foreground text-xs">
-                Heat ranking
-              </div>
+              <div className="text-muted-foreground text-xs">Heat ranking</div>
               <div className="text-lg font-semibold">
                 🔥 #{capital.heatRank} hottest capital
               </div>
@@ -133,11 +149,37 @@ function CapitalMarkerHoverCard({ capital }: { capital: CapitalMarker }) {
 
           {capital.coldRank != null && (
             <div className="rounded-md border bg-muted/40 p-3">
-              <div className="text-muted-foreground text-xs">
-                Cold ranking
-              </div>
+              <div className="text-muted-foreground text-xs">Cold ranking</div>
               <div className="text-lg font-semibold">
                 🧊 #{capital.coldRank} coldest capital
+              </div>
+            </div>
+          )}
+
+          {capital.warmestDaytimeTempC != null && (
+            <div className="rounded-md border bg-muted/40 p-3">
+              <div className="text-muted-foreground text-xs">
+                Daytime extreme
+              </div>
+              <div className="text-lg font-semibold">
+                ☀️ Warmest daytime capital
+              </div>
+              <div className="text-muted-foreground text-sm">
+                {capital.warmestDaytimeTempC.toFixed(1)}°C daytime average
+              </div>
+            </div>
+          )}
+
+          {capital.coldestNighttimeTempC != null && (
+            <div className="rounded-md border bg-muted/40 p-3">
+              <div className="text-muted-foreground text-xs">
+                Nighttime extreme
+              </div>
+              <div className="text-lg font-semibold">
+                🌙 Coldest nighttime capital
+              </div>
+              <div className="text-muted-foreground text-sm">
+                {capital.coldestNighttimeTempC.toFixed(1)}°C nighttime average
               </div>
             </div>
           )}
