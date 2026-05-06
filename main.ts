@@ -93,7 +93,7 @@ async function main() {
     "./scripts/insert-locations.ts",
   ])
 
-  // 2a. Insert/update observations (this is the weather data)
+  // 2b. Insert/update observations (this is the weather data)
   await runCommand("npx", [
     "tsx",
     "./scripts/insert-observations.ts",

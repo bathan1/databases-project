@@ -12,7 +12,8 @@
     "migrate-up": "tsx --env-file=.env.local ./db/up.ts",
     "migrate-down": "tsx --env-file=.env.local ./db/down.ts",
     "db-codegen": "kysely-codegen --env-file=.env.local",
-    "load-data": "tsx ./scripts/insert-locations.ts && tsx ./scripts/insert-observations.ts"
+    "load-data": "tsx ./scripts/insert-locations.ts && tsx ./scripts/insert-observations.ts",
+    "generate": "tsx main.ts"
   },
   "keywords": [],
   "author": "",
