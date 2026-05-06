@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Calendar } from "@/components/ui/calendar"
 import { WeatherMap } from "@/app/weather-map"
 
 type CapitalMarker = {
@@ -33,6 +32,32 @@ function dateFromKey(key: string) {
   return new Date(year!, month! - 1, day)
 }
 
+function addDays(date: Date, days: number) {
+  const next = new Date(date)
+  next.setDate(next.getDate() + days)
+  return next
+}
+
+function startOfWeek(date: Date) {
+  const start = new Date(date)
+  start.setDate(date.getDate() - date.getDay())
+  start.setHours(0, 0, 0, 0)
+  return start
+}
+
+function formatDayLabel(date: Date) {
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+  })
+}
+
+function formatMonthDay(date: Date) {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })
+}
+
 export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
   const firstDate = days[0]?.date
 
@@ -48,6 +73,15 @@ export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
     return new Set(days.map((day) => day.date))
   }, [days])
 
+  const twoWeekDates = useMemo(() => {
+    if (!firstDate) return []
+
+    const firstAvailableDate = dateFromKey(firstDate)
+    const weekStart = startOfWeek(firstAvailableDate)
+
+    return Array.from({ length: 14 }, (_, index) => addDays(weekStart, index))
+  }, [firstDate])
+
   const selectedDateKey = selectedDate ? dateKey(selectedDate) : firstDate
   const selectedDay = selectedDateKey
     ? daysByDate.get(selectedDateKey)
@@ -59,12 +93,12 @@ export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
   const coldestCapital = [...selectedCapitals].sort((a, b) => a.value - b.value)[0]
 
   const topTenHottest = selectedCapitals
-    .filter((capital) => capital.heatRank != null)
-    .sort((a, b) => (a.heatRank ?? 999) - (b.heatRank ?? 999))
+  .filter((capital) => capital.heatRank != null)
+  .sort((a, b) => (a.heatRank ?? 999) - (b.heatRank ?? 999))
 
   const topTenColdest = selectedCapitals
-    .filter((capital) => capital.coldRank != null)
-    .sort((a, b) => (a.coldRank ?? 999) - (b.coldRank ?? 999))
+  .filter((capital) => capital.coldRank != null)
+  .sort((a, b) => (a.coldRank ?? 999) - (b.coldRank ?? 999))
 
   if (days.length === 0) {
     return (
@@ -75,41 +109,58 @@ export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
   }
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[280px_1fr]">
-      <div className="space-y-4">
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <div className="mb-3">
-            <h2 className="font-semibold">Select day</h2>
-            <p className="text-muted-foreground text-sm">
-              Days outside the database range are disabled.
-            </p>
-          </div>
-
-          <Calendar
-            mode="single"
-            defaultMonth={selectedDate!}
-            selected={selectedDate!}
-            onSelect={(date) => {
-              if (!date) return
-
-              const key = dateKey(date)
-
-              if (availableDates.has(key)) {
-                setSelectedDate(date)
-              }
-            }}
-            disabled={(date) => !availableDates.has(dateKey(date))}
-            className="rounded-md border"
-          />
-
-          {selectedDateKey && (
-            <div className="mt-4 rounded-lg border bg-muted/40 p-3 text-sm">
-              <div className="text-muted-foreground">Showing</div>
-              <div className="font-medium">{selectedDateKey}</div>
-            </div>
-          )}
+    <section className="space-y-4">
+      <div className="rounded-xl border bg-card p-4 shadow-sm">
+        <div className="mb-3">
+          <h2 className="font-semibold">Select day</h2>
+          <p className="text-muted-foreground text-sm">
+            Days outside the database range are disabled.
+          </p>
         </div>
 
+        <div className="grid grid-cols-7 gap-2">
+          {twoWeekDates.map((date) => {
+            const key = dateKey(date)
+            const isAvailable = availableDates.has(key)
+            const isSelected = selectedDateKey === key
+
+            return (
+              <button
+                key={key}
+                type="button"
+                disabled={!isAvailable}
+                onClick={() => {
+                  if (isAvailable) {
+                    setSelectedDate(date)
+                  }
+                }}
+                className={[
+                  "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                  isSelected
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "bg-background hover:bg-muted",
+                  !isAvailable
+                    ? "cursor-not-allowed opacity-35 hover:bg-background"
+                    : "",
+                ].join(" ")}
+              >
+                <div className="text-xs font-medium">
+                  {formatDayLabel(date)}
+                </div>
+                <div className="font-semibold">
+                  {formatMonthDay(date)}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border">
+        <WeatherMap capitals={selectedCapitals} />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <h2 className="mb-3 font-semibold">Temperature summary</h2>
 
@@ -187,10 +238,6 @@ export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="overflow-hidden rounded-xl border">
-        <WeatherMap capitals={selectedCapitals} />
       </div>
     </section>
   )

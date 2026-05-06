@@ -1,4 +1,4 @@
-import { TemperatureExplorer } from "@/components/temperature-explorer"
+import { TemperatureExplorer } from "@/app/temperature-explorer"
 import { db } from "@/db/client"
 import {
   daily_city_average_temperature,
