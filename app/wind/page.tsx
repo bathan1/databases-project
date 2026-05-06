@@ -7,6 +7,7 @@ import {
   type DailyTopTenWindiestCapital,
 } from "@/app/wind/queries"
 import { sql } from "kysely"
+import { getCapitalCities } from "../queries"
 
 type CapitalCityRow = {
   id: number
@@ -32,19 +33,8 @@ export default async function Page() {
   const topTenWindiestRows = await db
     .executeQuery(daily_top_ten_windiest.compile(db))
     .then((r) => r.rows as DailyTopTenWindiestCapital[])
-
-  const capitalCities = (await db
-    .selectFrom("cities")
-    .innerJoin("states", "states.state_id", "cities.state_id")
-    .select([
-      "cities.city_id as id",
-      "cities.city_name as cityName",
-      "states.state_name as stateName",
-      sql<number>`CAST(ROUND(cities.lat, 2) AS DOUBLE)`.as("lat"),
-      sql<number>`CAST(ROUND(cities.lon, 2) AS DOUBLE)`.as("lon"),
-    ])
-    .execute()) as CapitalCityRow[]
-
+  
+  const capitalCities = await getCapitalCities();
   const cityById = new Map(capitalCities.map((city) => [city.id, city]))
 
   const windRankByDateAndCityId = new Map<string, number>()

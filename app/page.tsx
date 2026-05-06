@@ -3,6 +3,7 @@ import { db } from "@/db/client"
 import {
   daily_city_average_temperature,
   daily_daytime_nighttime_temperature_extremes,
+  getCapitalCities,
   top_ten_coldest,
   top_ten_hottest,
   type DailyCityAverageTemperature,
@@ -45,20 +46,8 @@ export default async function Page() {
     .executeQuery(daily_daytime_nighttime_temperature_extremes.compile(db))
     .then((r) => r.rows as DailyDaytimeNighttimeTemperatureExtreme[])
 
-  const capitalCities = (await db
-    .selectFrom("cities")
-    .innerJoin("states", "states.state_id", "cities.state_id")
-    .select([
-      "cities.city_id as id",
-      "cities.city_name as cityName",
-      "states.state_name as stateName",
-      sql<number>`CAST(ROUND(cities.lat, 2) AS DOUBLE)`.as("lat"),
-      sql<number>`CAST(ROUND(cities.lon, 2) AS DOUBLE)`.as("lon"),
-    ])
-    .execute()) as CapitalCityRow[]
-
+  const capitalCities = await getCapitalCities();
   const cityById = new Map(capitalCities.map((city) => [city.id, city]))
-
   const heatRankByDateAndCityId = new Map<string, number>()
   const coldRankByDateAndCityId = new Map<string, number>()
   const warmestDaytimeByDateAndCityId = new Map<string, number>()

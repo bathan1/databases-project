@@ -1,6 +1,8 @@
 /* Runs queries 1, 2, 3, and 10 */
 
+import { db } from "@/db/client"
 import { sql } from "kysely"
+import { cache } from "react"
 
 export type DailyCityAverageTemperature = {
   local_date: string
@@ -269,3 +271,20 @@ ORDER BY
     local_date,
     extreme_type;
 `
+
+/**
+ * This is the metadata the map needs to display the cities and state border data
+ */
+export const getCapitalCities = cache(async () => {
+  return db
+    .selectFrom("cities")
+    .innerJoin("states", "states.state_id", "cities.state_id")
+    .select([
+      "cities.city_id as id",
+      "cities.city_name as cityName",
+      "states.state_name as stateName",
+      sql<number>`CAST(ROUND(cities.lat, 2) AS DOUBLE)`.as("lat"),
+      sql<number>`CAST(ROUND(cities.lon, 2) AS DOUBLE)`.as("lon"),
+    ])
+    .execute()
+})
