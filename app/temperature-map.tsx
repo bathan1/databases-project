@@ -16,7 +16,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
 
-type CapitalMarker = {
+export type CapitalMarker = {
   id: string | number
   cityName: string
   stateName: string
@@ -189,7 +189,7 @@ function CapitalMarkerHoverCard({ capital }: { capital: CapitalMarker }) {
   )
 }
 
-export function WeatherMap({ capitals }: { capitals: CapitalMarker[] }) {
+export function WindMap({ capitals }: { capitals: CapitalMarker[] }) {
   const stateFillLayer: LayerProps = {
     id: "state-temperature-fill",
     type: "fill",

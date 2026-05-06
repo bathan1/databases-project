@@ -1,3 +1,5 @@
+/* Runs queries 1, 2, 3, and 10 */
+
 import { sql } from "kysely"
 
 export type DailyCityAverageTemperature = {

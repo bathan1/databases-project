@@ -1,11 +1,29 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { WindMap, type CapitalMarker} from "@/app/temperature-map"
+import { WindMap } from "./wind-map"
 
-type TemperatureDay = {
+type WindCapitalMarker = {
+  id: string | number
+  cityName: string
+  stateName: string
+  lat: number
+  lon: number
+
+  /**
+   * For this page, value = max wind speed for the selected day.
+   */
+  value: number
+
+  windRank?: number
+  avgWindSpeedKmh?: number
+  maxWindSpeedKmh?: number
+  maxWindOccurredAt?: string | Date
+}
+
+type WindDay = {
   date: string
-  capitals: CapitalMarker[]
+  capitals: WindCapitalMarker[]
 }
 
 function dateKey(date: Date) {
@@ -47,7 +65,16 @@ function formatMonthDay(date: Date) {
   })
 }
 
-export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
+function formatTime(value: string | Date | undefined) {
+  if (!value) return "Unknown"
+
+  return new Date(value).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  })
+}
+
+export function WindExplorer({ days }: { days: WindDay[] }) {
   const firstDate = days[0]?.date
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
@@ -78,21 +105,19 @@ export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
 
   const selectedCapitals = selectedDay?.capitals ?? []
 
-  const hottestCapital = selectedCapitals[0]
-  const coldestCapital = [...selectedCapitals].sort((a, b) => a.value - b.value)[0]
+  const windiestCapital = selectedCapitals[0]
+  const calmestCapital = [...selectedCapitals].sort(
+    (a, b) => a.value - b.value
+  )[0]
 
-  const topTenHottest = selectedCapitals
-  .filter((capital) => capital.heatRank != null)
-  .sort((a, b) => (a.heatRank ?? 999) - (b.heatRank ?? 999))
-
-  const topTenColdest = selectedCapitals
-  .filter((capital) => capital.coldRank != null)
-  .sort((a, b) => (a.coldRank ?? 999) - (b.coldRank ?? 999))
+  const topTenWindiest = selectedCapitals
+    .filter((capital) => capital.windRank != null)
+    .sort((a, b) => (a.windRank ?? 999) - (b.windRank ?? 999))
 
   if (days.length === 0) {
     return (
       <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">
-        No temperature data found.
+        No wind data found.
       </div>
     )
   }
@@ -116,6 +141,7 @@ export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
             return (
               <button
                 key={key}
+                type="button"
                 disabled={!isAvailable}
                 onClick={() => {
                   if (isAvailable) {
@@ -135,9 +161,7 @@ export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
                 <div className="text-xs font-medium">
                   {formatDayLabel(date)}
                 </div>
-                <div className="font-semibold">
-                  {formatMonthDay(date)}
-                </div>
+                <div className="font-semibold">{formatMonthDay(date)}</div>
               </button>
             )
           })}
@@ -150,78 +174,70 @@ export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <h2 className="mb-3 font-semibold">Temperature summary</h2>
+          <h2 className="mb-3 font-semibold">Wind summary</h2>
 
           <div className="space-y-3 text-sm">
-            {hottestCapital && (
+            {windiestCapital && (
               <div className="rounded-lg border bg-muted/40 p-3">
-                <div className="text-muted-foreground">Hottest capital</div>
+                <div className="text-muted-foreground">Windiest capital</div>
                 <div className="font-medium">
-                  {hottestCapital.cityName}, {hottestCapital.stateName}
+                  {windiestCapital.cityName}, {windiestCapital.stateName}
                 </div>
                 <div className="text-muted-foreground">
-                  {hottestCapital.value.toFixed(1)}°C
+                  Max {windiestCapital.value.toFixed(1)} km/h
+                </div>
+                <div className="text-muted-foreground text-xs">
+                  Occurred at {formatTime(windiestCapital.maxWindOccurredAt)}
                 </div>
               </div>
             )}
 
-            {coldestCapital && (
+            {calmestCapital && (
               <div className="rounded-lg border bg-muted/40 p-3">
-                <div className="text-muted-foreground">Coldest capital</div>
+                <div className="text-muted-foreground">Calmest capital</div>
                 <div className="font-medium">
-                  {coldestCapital.cityName}, {coldestCapital.stateName}
+                  {calmestCapital.cityName}, {calmestCapital.stateName}
                 </div>
                 <div className="text-muted-foreground">
-                  {coldestCapital.value.toFixed(1)}°C
+                  Max {calmestCapital.value.toFixed(1)} km/h
+                </div>
+                <div className="text-muted-foreground text-xs">
+                  Occurred at {formatTime(calmestCapital.maxWindOccurredAt)}
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <h2 className="mb-3 font-semibold">Top 10 hottest</h2>
+        <div className="rounded-xl border bg-card p-4 shadow-sm md:col-span-1 xl:col-span-2">
+          <h2 className="mb-3 font-semibold">Top 10 windiest capitals</h2>
 
-          <div className="space-y-2">
-            {topTenHottest.map((capital) => (
+          <div className="grid gap-2 md:grid-cols-2">
+            {topTenWindiest.map((capital) => (
               <div
                 key={capital.id}
                 className="flex items-center justify-between rounded-lg border bg-muted/40 px-3 py-2 text-sm"
               >
                 <div>
                   <div className="font-medium">
-                    🔥 {capital.heatRank}. {capital.cityName}
+                    💨 {capital.windRank}. {capital.cityName}
                   </div>
                   <div className="text-muted-foreground text-xs">
                     {capital.stateName}
                   </div>
                 </div>
 
-                <div className="font-medium">{capital.value.toFixed(1)}°C</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <h2 className="mb-3 font-semibold">Top 10 coldest</h2>
-
-          <div className="space-y-2">
-            {topTenColdest.map((capital) => (
-              <div
-                key={capital.id}
-                className="flex items-center justify-between rounded-lg border bg-muted/40 px-3 py-2 text-sm"
-              >
-                <div>
+                <div className="text-right">
                   <div className="font-medium">
-                    🧊 {capital.coldRank}. {capital.cityName}
+                    {capital.value.toFixed(1)} km/h
                   </div>
-                  <div className="text-muted-foreground text-xs">
-                    {capital.stateName}
-                  </div>
-                </div>
 
-                <div className="font-medium">{capital.value.toFixed(1)}°C</div>
+                  {capital.avgWindSpeedKmh != null && (
+                    <div className="text-muted-foreground text-xs">
+                      Avg {capital.avgWindSpeedKmh.toFixed(1)}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

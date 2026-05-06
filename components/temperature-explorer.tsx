@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { Calendar } from "@/components/ui/calendar"
-import { WeatherMap } from "@/app/weather-map"
+import { WindMap } from "@/app/temperature-map"
 
 type CapitalMarker = {
   id: string | number
@@ -190,7 +190,7 @@ export function TemperatureExplorer({ days }: { days: TemperatureDay[] }) {
       </div>
 
       <div className="overflow-hidden rounded-xl border">
-        <WeatherMap capitals={selectedCapitals} />
+        <WindMap capitals={selectedCapitals} />
       </div>
     </section>
   )
