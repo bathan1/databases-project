@@ -7,7 +7,7 @@ import {
   type DailyCityAverageTemperature,
   type TopTenColdestCapital,
   type TopTenHottestCapital,
-} from "@/db/queries/temperature-queries"
+} from "@/app/queries";
 import { sql } from "kysely"
 
 type CapitalCityRow = {
