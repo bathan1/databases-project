@@ -1,9 +1,13 @@
-import "dotenv/config";
 import LOCATIONS from "../capitals.json" with { type: "json" };
 import { getCoordinates, getCurrentWeather } from "../api.js";
 import type { Kysely } from "kysely";
 import type { DB } from "kysely-codegen";
 import { db } from "../db/client.js";
+import { config } from "dotenv";
+
+config({
+  path: ".env.local"
+})
 
 const INSERTS: Array<(db: Kysely<DB>) => Promise<void>> = [];
 const insertedStates = new Set<string>();

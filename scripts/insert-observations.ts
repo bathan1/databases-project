@@ -1,8 +1,12 @@
-import "dotenv/config";
 import { fetchWeatherApi } from "openmeteo";
 import { db } from "../db/client.js";
 import { sql, type Insertable } from "kysely";
 import type { Observations } from "kysely-codegen";
+import { config } from "dotenv";
+
+config({
+  path: ".env.local"
+})
 
 function readIntArg(name: string, defaultValue: number) {
   const prefix = `--${name}=`
