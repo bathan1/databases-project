@@ -10,6 +10,8 @@ import Map, {
   type LayerProps,
 } from "react-map-gl/maplibre"
 
+import { Button } from "@/components/ui/button";
+
 import {
   HoverCard,
   HoverCardContent,
@@ -23,6 +25,8 @@ type CapitalMarker = {
   lat: number
   lon: number
   value: number
+  heatRank?: number
+  coldRank?: number
 }
 
 function tempColor(tempC: number) {
@@ -53,25 +57,44 @@ function makeStateFillExpression(capitals: CapitalMarker[]) {
   }
 
   expression.push("#e5e7eb")
+
   return expression
 }
 
 function CapitalMarkerHoverCard({ capital }: { capital: CapitalMarker }) {
+  const isRanked = capital.heatRank != null || capital.coldRank != null
+
   return (
     <HoverCard>
       <HoverCardTrigger render={(
-        <button
-          type="button"
+        <Button
+          aria-label={`${capital.cityName}, ${capital.stateName}`}
           className={[
-            "rounded-full border px-2 py-1 text-xs font-medium shadow",
-            "transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "relative border shadow transition-transform hover:scale-110",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+
+            isRanked
+              ? "rounded-full px-2 py-1 text-xs font-medium"
+              : "size-2.5 rounded-full p-0",
+
             tempMarkerClass(capital.value),
           ].join(" ")}
         >
-          {capital.cityName}
-        </button>
-      )}/>
+          {isRanked ? capital.cityName : null}
 
+          {capital.heatRank != null && (
+            <span className="absolute -right-3 -top-3 rounded-full border bg-background px-1.5 py-0.5 text-[10px] font-semibold text-foreground shadow">
+              🔥 {capital.heatRank}
+            </span>
+          )}
+
+          {capital.coldRank != null && (
+            <span className="absolute -right-3 -bottom-3 rounded-full border bg-background px-1.5 py-0.5 text-[10px] font-semibold text-foreground shadow">
+              🧊 {capital.coldRank}
+            </span>
+          )}
+        </Button>
+      )} />
       <HoverCardContent
         side="top"
         align="center"
@@ -84,7 +107,7 @@ function CapitalMarkerHoverCard({ capital }: { capital: CapitalMarker }) {
               {capital.cityName}, {capital.stateName}
             </div>
             <div className="text-muted-foreground text-xs">
-              Capital city average temperature
+              Daily average temperature
             </div>
           </div>
 
@@ -97,10 +120,27 @@ function CapitalMarkerHoverCard({ capital }: { capital: CapitalMarker }) {
             </div>
           </div>
 
-          <div className="text-muted-foreground text-xs">
-            This value is calculated from the first available day of hourly
-            observations.
-          </div>
+          {capital.heatRank != null && (
+            <div className="rounded-md border bg-muted/40 p-3">
+              <div className="text-muted-foreground text-xs">
+                Heat ranking
+              </div>
+              <div className="text-lg font-semibold">
+                🔥 #{capital.heatRank} hottest capital
+              </div>
+            </div>
+          )}
+
+          {capital.coldRank != null && (
+            <div className="rounded-md border bg-muted/40 p-3">
+              <div className="text-muted-foreground text-xs">
+                Cold ranking
+              </div>
+              <div className="text-lg font-semibold">
+                🧊 #{capital.coldRank} coldest capital
+              </div>
+            </div>
+          )}
         </div>
       </HoverCardContent>
     </HoverCard>
@@ -134,7 +174,7 @@ export function WeatherMap({ capitals }: { capitals: CapitalMarker[] }) {
         zoom: 3,
       }}
       mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-      style={{ width: "100%", height: 500 }}
+      style={{ width: "100%", height: 600 }}
     >
       <NavigationControl position="top-left" />
 

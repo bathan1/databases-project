@@ -1,15 +1,21 @@
 import { TemperatureExplorer } from "@/components/temperature-explorer"
 import { db } from "@/db/client"
-import { daily_city_average_temperature } from "@/db/queries/temperature-queries"
+import {
+  daily_city_average_temperature,
+  top_ten_coldest,
+  top_ten_hottest,
+  type DailyCityAverageTemperature,
+  type TopTenColdestCapital,
+  type TopTenHottestCapital,
+} from "@/db/queries/temperature-queries"
 import { sql } from "kysely"
 
-type DailyCityAverageTemperatureRow = {
-  local_date: string | Date
-  state_id: number
-  state_name: string
-  city_id: number
-  city_name: string
-  avg_temp_c: string | number
+type CapitalCityRow = {
+  id: number
+  cityName: string
+  stateName: string
+  lat: number
+  lon: number
 }
 
 function toDateKey(value: string | Date) {
@@ -21,11 +27,19 @@ function toDateKey(value: string | Date) {
 }
 
 export default async function Page() {
-  const rows = await db
+  const dailyAverageRows = await db
     .executeQuery(daily_city_average_temperature.compile(db))
-    .then((r) => r.rows as DailyCityAverageTemperatureRow[])
+    .then((r) => r.rows as DailyCityAverageTemperature[])
 
-  const capitalCities = await db
+  const hottestRows = await db
+    .executeQuery(top_ten_hottest.compile(db))
+    .then((r) => r.rows as TopTenHottestCapital[])
+
+  const coldestRows = await db
+    .executeQuery(top_ten_coldest.compile(db))
+    .then((r) => r.rows as TopTenColdestCapital[])
+
+  const capitalCities = (await db
     .selectFrom("cities")
     .innerJoin("states", "states.state_id", "cities.state_id")
     .select([
@@ -35,9 +49,30 @@ export default async function Page() {
       sql<number>`CAST(ROUND(cities.lat, 2) AS DOUBLE)`.as("lat"),
       sql<number>`CAST(ROUND(cities.lon, 2) AS DOUBLE)`.as("lon"),
     ])
-    .execute()
+    .execute()) as CapitalCityRow[]
 
   const cityById = new Map(capitalCities.map((city) => [city.id, city]))
+
+  const heatRankByDateAndCityId = new Map<string, number>()
+  const coldRankByDateAndCityId = new Map<string, number>()
+
+  for (const row of hottestRows) {
+    const dateKey = toDateKey(row.local_date)
+
+    heatRankByDateAndCityId.set(
+      `${dateKey}:${row.city_id}`,
+      Number(row.heat_rank)
+    )
+  }
+
+  for (const row of coldestRows) {
+    const dateKey = toDateKey(row.local_date)
+
+    coldRankByDateAndCityId.set(
+      `${dateKey}:${row.city_id}`,
+      Number(row.cold_rank)
+    )
+  }
 
   const daysMap = new Map<
     string,
@@ -48,16 +83,19 @@ export default async function Page() {
       lat: number
       lon: number
       value: number
+      heatRank?: number
+      coldRank?: number
     }>
   >()
 
-  for (const row of rows) {
+  for (const row of dailyAverageRows) {
     const dateKey = toDateKey(row.local_date)
     const city = cityById.get(row.city_id)
 
     if (!city) continue
 
     const current = daysMap.get(dateKey) ?? []
+    const rankKey = `${dateKey}:${row.city_id}`
 
     current.push({
       id: city.id,
@@ -66,6 +104,8 @@ export default async function Page() {
       lat: city.lat,
       lon: city.lon,
       value: Number(row.avg_temp_c),
+      heatRank: heatRankByDateAndCityId.get(rankKey)!,
+      coldRank: coldRankByDateAndCityId.get(rankKey)!,
     })
 
     daysMap.set(dateKey, current)
@@ -75,7 +115,7 @@ export default async function Page() {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, capitals]) => ({
       date,
-      capitals,
+      capitals: capitals.sort((a, b) => b.value - a.value),
     }))
 
   return (
@@ -84,6 +124,11 @@ export default async function Page() {
         <h1 className="text-2xl font-semibold">Weather Map</h1>
         <p className="text-muted-foreground text-sm">
           Daily average temperature by capital city.
+          Hover over the labels to see details.
+
+          Only the top 10 coldest and hottest cities have labeled
+          shown on the map, the rest are displayed as dots. Hover over 
+          the dots to see their temperature detail.
         </p>
       </div>
 
